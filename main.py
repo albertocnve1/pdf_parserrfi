@@ -93,8 +93,8 @@ def extract_specific_lines_to_excel(pdf_folder):
         
         print(f"Estrazione completata per il dipendente {folder_name}.")
 
-# Cartella contenente le cartelle dei dipendenti con le buste paga
-customers_folder = '/Users/albertocanavese/Desktop/test_python/Buste paga'
+# Chiedi all'utente di inserire il percorso della cartella dei dipendenti con le buste paga
+customers_folder = input("Inserisci il percorso della cartella dei dipendenti con le buste paga: ")
 
 # Chiama la funzione per estrarre le righe specifiche dai PDF e scriverle in fogli Excel per ogni dipendente
 extract_specific_lines_to_excel(customers_folder)
