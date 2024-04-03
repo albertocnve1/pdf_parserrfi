@@ -4,23 +4,23 @@ import pdfplumber
 from openpyxl import Workbook
 from datetime import datetime
 
-def italian_to_english_month(month):
-    # Dizionario per la conversione dei nomi dei mesi italiani in inglesi
+def italian_month_to_number(month):
+    # Dizionario per la conversione dei nomi dei mesi italiani in numeri
     months = {
-        "Gennaio": "January",
-        "Febbraio": "February",
-        "Marzo": "March",
-        "Aprile": "April",
-        "Maggio": "May",
-        "Giugno": "June",
-        "Luglio": "July",
-        "Agosto": "August",
-        "Settembre": "September",
-        "Ottobre": "October",
-        "Novembre": "November",
-        "Dicembre": "December"
+        "Gennaio": 1,
+        "Febbraio": 2,
+        "Marzo": 3,
+        "Aprile": 4,
+        "Maggio": 5,
+        "Giugno": 6,
+        "Luglio": 7,
+        "Agosto": 8,
+        "Settembre": 9,
+        "Ottobre": 10,
+        "Novembre": 11,
+        "Dicembre": 12
     }
-    return months.get(month, '')
+    return months.get(month, 0)  # Restituisce 0 se il mese non è presente nel dizionario
 
 def extract_specific_lines_to_excel(pdf_folder):
     # Elenco delle cartelle dei dipendenti nella cartella specificata
@@ -59,7 +59,6 @@ def extract_specific_lines_to_excel(pdf_folder):
                 # Estrai il mese e l'anno dal nome del file PDF
                 filename = os.path.splitext(pdf_file)[0]
                 month, year = filename.split(' ', 1)
-                month = italian_to_english_month(month)
                 
                 # Inizializza un dizionario per il mese corrente
                 if month not in data:
@@ -99,8 +98,8 @@ def extract_specific_lines_to_excel(pdf_folder):
                             else:
                                 data[month][code] += value
             
-            # Ordina i mesi in ordine cronologico
-            months_sorted = sorted(data.keys(), key=lambda x: datetime.strptime(x, '%B').month)
+            # Ordina i mesi in ordine cronologico utilizzando il numero del mese
+            months_sorted = sorted(data.keys(), key=lambda x: italian_month_to_number(x))
             
             # Scrittura dei dati nel foglio di lavoro
             ws.append(['Codice'] + months_sorted)  # Intestazioni delle colonne con i mesi
