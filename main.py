@@ -2,6 +2,8 @@ import os
 import re
 import pdfplumber
 from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 
 def italian_month_to_number(month):
     # Dizionario per la conversione dei nomi dei mesi italiani in numeri
@@ -108,9 +110,8 @@ def extract_specific_lines_to_excel(pdf_folder):
                     # Rimuovi il file di testo temporaneo
                     if os.path.exists(temp_text_file):
                         os.remove(temp_text_file)
-
                 
-               # Apre il file PDF con pdfplumber
+                # Apre il file PDF con pdfplumber
                 with pdfplumber.open(pdf_path) as pdf:
                     # Itera attraverso tutte le pagine del PDF
                     for page_num in range(len(pdf.pages)):
@@ -155,6 +156,24 @@ def extract_specific_lines_to_excel(pdf_folder):
             # Modifica il nome del foglio di lavoro con il nome del dipendente e l'anno lavorativo
             ws.title = f'Anno {year}'
             
+            # Somma dei valori per ogni riga e scrittura nelle celle specificate
+            for row in range(4, 11):
+                ws[f'O{row}'] = f"=SUM(B{row}:M{row})"
+            
+            # Somma dei valori per ogni colonna e scrittura nelle celle specificate
+            for col in range(2, 14):  # Modifica il range fino alla colonna M
+                ws[get_column_letter(col) + '12'] = f"=SUM({get_column_letter(col)}4:{get_column_letter(col)}10)"
+            
+            # Somma di tutte le celle da B12 a M12 e scrittura nella cella N12
+            ws['O12'] = f"=SUM(B12:M12)"
+            
+            # Scrittura di "TOTALE" nella cella A12
+            ws['A12'] = "TOTALE"
+            
+            # Applica lo stile in grassetto alla riga 12
+            for cell in ws[12]:
+                cell.font = Font(bold=True)
+            
             # Path del file Excel per il dipendente corrente
             excel_path = os.path.join(pdf_folder, f'{employee_name}.xlsx')
             
@@ -162,7 +181,6 @@ def extract_specific_lines_to_excel(pdf_folder):
             wb.save(excel_path)
             
             print(f"Estrazione completata per il dipendente {employee_name}.")
-        
 
 # Chiedi all'utente di inserire il percorso della cartella dei dipendenti con le buste paga
 customers_folder = input("Inserisci il percorso della cartella dei dipendenti con le buste paga: ")
