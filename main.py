@@ -124,7 +124,7 @@ def extract_specific_lines_to_excel(pdf_folder):
                         # Itera attraverso tutte le righe del testo
                         for line in text.split('\n'):
                             # Utilizza espressioni regolari per trovare le righe con i codici desiderati
-                            match = re.match(r'^(0969|0970|0991|0992|0AD0|0AD1)\s', line)
+                            match = re.match(r'^(0969|0970|0991|0992|0AD0|0AD1|0421|0457|0131|0576|0376|0377|0169|0170|0965|0966|0967|0987|0988|0790|0076)\s', line)
                             if match:
                                 # Separa la riga in codice, descrizione e valore
                                 cells = line.split()
@@ -156,23 +156,20 @@ def extract_specific_lines_to_excel(pdf_folder):
             # Modifica il nome del foglio di lavoro con il nome del dipendente e l'anno lavorativo
             ws.title = f'Anno {year}'
             
-            # Somma dei valori per ogni riga e scrittura nelle celle specificate
-            for row in range(4, 11):
-                ws[f'O{row}'] = f"=SUM(B{row}:M{row})"
+            # Somma di tutte le celle da B alla colonna corrente e scrittura nella cella corrispondente alla riga Totale (riga 30)
+            last_row = 30  # Righe del totale
+            ws[f'O{last_row}'] = f"=SUM(B{last_row}:M{last_row})"
             
-            # Somma dei valori per ogni colonna e scrittura nelle celle specificate
+            # Scrittura di "TOTALE" nella cella A corrispondente alla riga Totale (riga 30)
+            ws[f'A{last_row}'] = "TOTALE"
+            
+            # Applica lo stile in grassetto alla riga del totale
+            ws[f'A{last_row}'].font = Font(bold=True)
             for col in range(2, 14):  # Modifica il range fino alla colonna M
-                ws[get_column_letter(col) + '12'] = f"=SUM({get_column_letter(col)}4:{get_column_letter(col)}10)"
-            
-            # Somma di tutte le celle da B12 a M12 e scrittura nella cella N12
-            ws['O12'] = f"=SUM(B12:M12)"
-            
-            # Scrittura di "TOTALE" nella cella A12
-            ws['A12'] = "TOTALE"
-            
-            # Applica lo stile in grassetto alla riga 12
-            for cell in ws[12]:
-                cell.font = Font(bold=True)
+                ws[get_column_letter(col) + str(last_row)].font = Font(bold=True)
+                
+                # Somma delle righe dalla riga 4 alla riga 30 e scrittura nella riga 30 per ogni colonna
+                ws[get_column_letter(col) + '30'] = f"=SUM({get_column_letter(col)}4:{get_column_letter(col)}{last_row-1})"
             
             # Path del file Excel per il dipendente corrente
             excel_path = os.path.join(pdf_folder, f'{employee_name}.xlsx')
