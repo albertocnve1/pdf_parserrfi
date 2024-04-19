@@ -23,25 +23,6 @@ def italian_month_to_number(month):
     }
     return months.get(month, 0)  # Restituisce 0 se il mese non è presente nel dizionario
 
-def find_monthly_salary_in_december(pdf_path):
-    # Inizializza la variabile per la retribuzione mensile
-    monthly_salary = None
-    
-    # Apre il file PDF con pdfplumber
-    with pdfplumber.open(pdf_path) as pdf:
-        # Estrai il testo dalla prima pagina del PDF di dicembre
-        first_page = pdf.pages[0]
-        text = first_page.extract_text()
-        
-        # Utilizza un'espressione regolare per cercare il numero nel formato 1.000,00 prima del codice "2B30"
-        match = re.search(r'(\d{1,3}(?:\.\d{3})*(?:,\d{2}))\s+2B30', text)
-        if match:
-            # Estrai il valore della retribuzione mensile
-            monthly_salary = match.group(1)
-    
-    # Restituisci la retribuzione mensile trovata o None se non è stata trovata
-    return monthly_salary
-
 def extract_specific_lines_to_excel(pdf_folder):
     # Elenco delle cartelle dei dipendenti nella cartella specificata
     employees = [f.path for f in os.scandir(pdf_folder) if f.is_dir()]
@@ -87,30 +68,7 @@ def extract_specific_lines_to_excel(pdf_folder):
                 # Path completo del file PDF
                 pdf_path = os.path.join(year_folder, pdf_file)
                 
-                # Se il mese è Dicembre, crea un file di testo temporaneo e cerca la retribuzione mensile
-                if month == 'Dicembre':
-                    # Crea il percorso per il file di testo temporaneo
-                    temp_text_file = os.path.join(year_folder, f'{month}_temp.txt')
-                    
-                    # Estrai la retribuzione mensile dal PDF di dicembre e scrivila nel file di testo temporaneo
-                    monthly_salary = find_monthly_salary_in_december(pdf_path)
-                    if monthly_salary:
-                        with open(temp_text_file, 'w') as temp_file:
-                            temp_file.write(monthly_salary)
-                            
-                    # Verifica se il file di testo temporaneo esiste
-                    if os.path.exists(temp_text_file):
-                        with open(temp_text_file, 'r') as temp_file:
-                            monthly_salary = temp_file.read()
-                    
-                    # Aggiungi la retribuzione mensile al foglio di lavoro Excel
-                    if monthly_salary:
-                        ws[f'A2'] = f'Retribuzione mensile: {monthly_salary}'
-                    
-                    # Rimuovi il file di testo temporaneo
-                    if os.path.exists(temp_text_file):
-                        os.remove(temp_text_file)
-                
+
                 # Apre il file PDF con pdfplumber
                 with pdfplumber.open(pdf_path) as pdf:
                     # Itera attraverso tutte le pagine del PDF
