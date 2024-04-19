@@ -4,6 +4,7 @@ import pdfplumber
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
+from datetime import datetime
 
 def italian_month_to_number(month):
     # Dizionario per la conversione dei nomi dei mesi italiani in numeri
@@ -22,6 +23,10 @@ def italian_month_to_number(month):
         "Dicembre": 12
     }
     return months.get(month, 0)  # Restituisce 0 se il mese non è presente nel dizionario
+
+def nome_mese(mese):
+    mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"]
+    return mesi[mese - 1] if 1 <= mese <= 12 else None
 
 def extract_specific_lines_to_excel(pdf_folder):
     # Elenco delle cartelle dei dipendenti nella cartella specificata
@@ -135,10 +140,44 @@ def extract_specific_lines_to_excel(pdf_folder):
             # Salva il foglio di lavoro Excel per il dipendente corrente
             wb.save(excel_path)
             
-            print(f"Estrazione completata per il dipendente {employee_name}.")
+            print(f"Estrazione completata per il dipendente {employee_name} anno {year}.")
+
+# Funzione per preparare i file PDF
+def prepare_and_extract(pdf_folder):
+    # Attraversa ricorsivamente tutte le sottocartelle e trova i file PDF
+    for dirpath, _, filenames in os.walk(pdf_folder):
+        for filename in filenames:
+            if filename.endswith('.PDF') or filename.endswith('.pdf'):
+                file_path = os.path.join(dirpath, filename)
+                try:
+                    # Estrapola l'anno e il mese dal nome del file
+                    anno = int(filename[:4])
+                    mese = int(filename[5:7])
+                except ValueError:
+                    print(f"Il file '{filename}' non segue il formato YYYY_MM.pdf. Ignorato.")
+                    continue
+
+                # Ottieni il nome del mese in italiano
+                nome_mese_it = nome_mese(mese)
+
+                if nome_mese_it:
+                    # Rimuovi spazi extra dal nome del mese
+                    nome_mese_it = nome_mese_it.strip()
+
+                    # Rinomina il file con il formato desiderato
+                    nuovo_nome = f"{nome_mese_it} {anno}.pdf"
+                    # Rinomina il file
+                    nuovo_path = os.path.join(dirpath, nuovo_nome)
+                    os.rename(file_path, nuovo_path)
+                    print(f"File rinominato: {file_path} -> {nuovo_path}")
+                else:
+                    print(f"Errore: Mese non valido nel file {filename}")
+    
+    # Dopo la preparazione dei PDF, esegui l'estrazione dei dati
+    extract_specific_lines_to_excel(pdf_folder)
 
 # Chiedi all'utente di inserire il percorso della cartella dei dipendenti con le buste paga
 customers_folder = input("Inserisci il percorso della cartella dei dipendenti con le buste paga: ")
 
-# Chiama la funzione per estrarre le righe specifiche dai PDF e scriverle in fogli Excel per ogni dipendente e anno
-extract_specific_lines_to_excel(customers_folder)
+# Chiama la funzione per preparare i file PDF e poi estrarre le righe specifiche dai PDF e scriverle in fogli Excel per ogni dipendente e anno
+prepare_and_extract(customers_folder)
