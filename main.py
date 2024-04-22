@@ -2,7 +2,7 @@ import os
 import re
 import pdfplumber
 from openpyxl import Workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 from datetime import datetime
 
@@ -73,7 +73,6 @@ def extract_specific_lines_to_excel(pdf_folder):
                 # Path completo del file PDF
                 pdf_path = os.path.join(year_folder, pdf_file)
                 
-
                 # Apre il file PDF con pdfplumber
                 with pdfplumber.open(pdf_path) as pdf:
                     # Itera attraverso tutte le pagine del PDF
@@ -133,6 +132,24 @@ def extract_specific_lines_to_excel(pdf_folder):
                 
                 # Somma delle righe dalla riga 4 alla riga 30 e scrittura nella riga 30 per ogni colonna
                 ws[get_column_letter(col) + '30'] = f"=SUM({get_column_letter(col)}4:{get_column_letter(col)}{last_row-1})"
+            
+            # Aggiungi le scritte richieste nelle celle specifiche
+            ws['A31'] = "Presenze"
+            ws['A32'] = "Ferie"
+            ws['A33'] = "Retribuzione mensile"
+            ws['A34'] = "VALORE MEDIO GIORNALIERO VOCI CONTRATTUALI ACCESSORIE"
+            ws['A35'] = "VALORE MEDIO GIORNALIERO VOCI CONTRATTUALI ACCESSORIE"
+            ws['A36'] = "INCIDENZA"
+            
+            # Applica lo stile in grassetto alla riga 34
+            ws['A34'].font = Font(bold=True)
+            ws['A35'].font = Font(bold=True)
+            ws['A36'].font = Font(bold=True)
+            
+            # Allinea il testo delle celle
+            for row in ws.iter_rows(min_row=31, max_row=36, min_col=1, max_col=1):
+                for cell in row:
+                    cell.alignment = Alignment(horizontal='left')
             
             # Path del file Excel per il dipendente corrente
             excel_path = os.path.join(pdf_folder, f'{employee_name}.xlsx')
