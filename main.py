@@ -145,7 +145,10 @@ def extract_specific_lines_to_excel(pdf_folder):
             ws['A34'].font = Font(bold=True)
             ws['A35'].font = Font(bold=True)
             ws['A36'].font = Font(bold=True)
-            
+            # Calcolo dei valori nelle celle specificate
+            ws['B34'] = f"=O30/B31"
+            ws['B35'] = f"=B31/26"
+            ws['B36'] = f"=(B35*100)/B36"
             # Allinea il testo delle celle
             for row in ws.iter_rows(min_row=31, max_row=36, min_col=1, max_col=1):
                 for cell in row:
