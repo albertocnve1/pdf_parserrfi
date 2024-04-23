@@ -5,6 +5,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 from datetime import datetime
+import tempfile
 
 def italian_month_to_number(month):
     # Dizionario per la conversione dei nomi dei mesi italiani in numeri
@@ -62,13 +63,12 @@ def extract_specific_lines_to_excel(pdf_folder):
             
             # Itera attraverso ogni file PDF per il dipendente e l'anno corrente
             for pdf_file in pdf_files:
+                # Crea un file di testo temporaneo
+                temp_text_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
+                
                 # Estrai il mese e l'anno dal nome del file PDF
                 filename, file_extension = os.path.splitext(pdf_file)
                 month, year = filename.split(' ', 1)
-                
-                # Inizializza un dizionario per il mese corrente
-                if month not in data:
-                    data[month] = {}
                 
                 # Path completo del file PDF
                 pdf_path = os.path.join(year_folder, pdf_file)
@@ -80,29 +80,34 @@ def extract_specific_lines_to_excel(pdf_folder):
                         page = pdf.pages[page_num]
                         text = page.extract_text()
                         
-                        # Lista per memorizzare le righe estratte per la pagina corrente
-                        extracted_lines = []
-                        
                         # Itera attraverso tutte le righe del testo
                         for line in text.split('\n'):
                             # Utilizza espressioni regolari per trovare le righe con i codici desiderati
                             match = re.match(r'^(0969|0970|0991|0992|0AD0|0AD1|0421|0457|0131|0576|0376|0377|0169|0170|0965|0966|0967|0987|0988|0790|0076)\s', line)
                             if match:
-                                # Separa la riga in codice, descrizione e valore
-                                cells = line.split()
-                                if len(cells) >= 3:
-                                    # Sostituisci la virgola con un punto per consentire la conversione in float
-                                    value = cells[-1].replace(',', '.')
-                                    extracted_lines.append([cells[0], float(value)])
-                        
-                        # Aggiungi le righe estratte al dizionario dei dati
-                        for row in extracted_lines:
-                            code = row[0]
-                            value = row[1]
-                            if code not in data[month]:
-                                data[month][code] = value
+                                # Scrivi la riga nel file di testo temporaneo
+                                temp_text_file.write(line + '\n')
+                
+                # Chiudi il file di testo temporaneo
+                temp_text_file.close()
+                
+                # Analizza il file di testo temporaneo e aggiorna i dati
+                with open(temp_text_file.name, 'r') as temp_file:
+                    for line in temp_file:
+                        # Separa la riga in codice, descrizione e valore
+                        cells = line.split()
+                        if len(cells) >= 3:
+                            # Sostituisci la virgola con un punto per consentire la conversione in float
+                            value = cells[-1].replace(',', '.')
+                            if month not in data:
+                                data[month] = {}
+                            if cells[0] not in data[month]:
+                                data[month][cells[0]] = float(value)
                             else:
-                                data[month][code] += value
+                                data[month][cells[0]] += float(value)
+                
+                # Elimina il file di testo temporaneo
+                os.remove(temp_text_file.name)
             
             # Ordina i mesi in ordine cronologico utilizzando il numero del mese
             months_sorted = sorted(data.keys(), key=lambda x: italian_month_to_number(x))
