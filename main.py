@@ -2,7 +2,7 @@ import os
 import re
 import pdfplumber
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
+from openpyxl.styles import Border, Font, Alignment, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import NamedStyle
 from datetime import datetime
@@ -155,13 +155,37 @@ def extract_specific_lines_to_excel(pdf_folder):
             ws['A34'].font = Font(bold=True)
             ws['A35'].font = Font(bold=True)
             ws['A36'].font = Font(bold=True)
+            # Applicazione dello stile al testo in rosso delle celle specificate
+            for cell in ['A36', 'A37', 'B36', 'C36', 'H37']:
+                ws[cell].font = Font(color="FF0000")
+
+            # Applicazione dello sfondo giallo alle celle specificate
+            ws['A31'].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+            ws['B31'].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+            ws['A32'].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+            ws['B32'].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+            ws['B33'].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+            ws['A33'].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+            ws['C33'].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+
+        
+            
+            
+     
+            # Modifica il nome del foglio di lavoro con il nome del dipendente e l'anno lavorativo
+            ws.title = f'Anno {year}'
+
             # Calcolo dei valori nelle celle specificate
-            ws['B34'] = f"=O30/B31"
-            ws['B35'] = f"=B33/26"
-            ws['B36'] = f"=(B34/100)*B35"
+            ws['G34'] = f"=O30/B31"
+            ws['G35'] = f"=C33/26"
+            ws['B36'] = f"=(G34/100)*G35"
             ws['C36'] = f"%"
+            ws['A37'] = "Voci contrattuali accessorie dovute durante le ferie (valore medio giornaliero x gg di ferie anno)"
+            ws['H37'] = f"=B32*G34"
+            # Scrivi l'anno delle buste paga nella cella N1
+            ws['N1'] = int(year)
             # Applicazione dello stile alle celle specificate
-            for cell in ['B34', 'B35']:
+            for cell in ['G34', 'G35']:
                 ws[cell].style = euro_style
 
             # Applicazione dello stile alle celle della riga 30 tranne A30
@@ -178,6 +202,32 @@ def extract_specific_lines_to_excel(pdf_folder):
             for row in ws.iter_rows(min_row=31, max_row=36, min_col=1, max_col=1):
                 for cell in row:
                     cell.alignment = Alignment(horizontal='left')
+
+            # Applicazione dello stile bordi visibili alle celle specificate
+            # Definisci lo stile del bordo
+            border_style = Border(left=Side(style='thin'),
+                                right=Side(style='thin'),
+                                top=Side(style='thin'),
+                                bottom=Side(style='thin'))
+
+            # Bordi visibili
+            for row in range(1, 30):
+                for col in range(1, 14):
+                    cell = ws.cell(row=row, column=col)
+                    if col <= 13 and cell.value:
+                        cell.border = border_style
+                        cell.font = Font(bold=False)
+
+            # Bordi per le celle di riga 30 con testo
+            for col in range(1, 16):
+                cell = ws.cell(row=30, column=col)
+                if cell.value:
+                    cell.border = border_style
+                    cell.font = Font(bold=True)
+                
+            cell_list = ['A31', 'A32', 'A33', 'B31', 'B32', 'B33', 'C33', 'A34', 'B34', 'C34', 'D34', 'E34', 'F34', 'G34', 'A35', 'B35', 'C35', 'D35', 'E35', 'F35', 'G35', 'A36', 'B36', 'A37', 'B37', 'C37', 'D37', 'E37', 'F37', 'G37', 'H37']
+            for cell in cell_list:
+                ws[cell].border = border_style
             
             # Path del file Excel per il dipendente corrente
             excel_path = os.path.join(pdf_folder, f'{employee_name}.xlsx')
