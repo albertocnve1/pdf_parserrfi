@@ -4,8 +4,13 @@ import pdfplumber
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import NamedStyle
 from datetime import datetime
 import tempfile
+
+# Creazione di uno stile per il formato delle celle in euro
+euro_style = NamedStyle(name="euro_style")
+euro_style.number_format = '€ #,##0.00'  # Formato valuta in euro
 
 def italian_month_to_number(month):
     # Dizionario per la conversione dei nomi dei mesi italiani in numeri
@@ -143,7 +148,7 @@ def extract_specific_lines_to_excel(pdf_folder):
             ws['A32'] = "Ferie"
             ws['A33'] = "Retribuzione mensile"
             ws['A34'] = "VALORE MEDIO GIORNALIERO VOCI CONTRATTUALI ACCESSORIE"
-            ws['A35'] = "VALORE MEDIO GIORNALIERO VOCI CONTRATTUALI ACCESSORIE"
+            ws['A35'] = "RETRIBUZIONE GIORNALIERA (1/26 ART.68, COMM.6 DEL CCNL)"
             ws['A36'] = "INCIDENZA"
             
             # Applica lo stile in grassetto alla riga 34
@@ -152,8 +157,23 @@ def extract_specific_lines_to_excel(pdf_folder):
             ws['A36'].font = Font(bold=True)
             # Calcolo dei valori nelle celle specificate
             ws['B34'] = f"=O30/B31"
-            ws['B35'] = f"=B31/26"
-            ws['B36'] = f"=(B35*100)/B36"
+            ws['B35'] = f"=B33/26"
+            ws['B36'] = f"=(B34/100)*B35"
+            ws['C36'] = f"%"
+            # Applicazione dello stile alle celle specificate
+            for cell in ['B34', 'B35']:
+                ws[cell].style = euro_style
+
+            # Applicazione dello stile alle celle della riga 30 tranne A30
+            for cell in ws[30]:
+                if cell.column_letter != 'A':
+                    cell.style = euro_style
+
+            for row in range(2, 30):
+                for col in range(2, 14):
+                    cell = ws.cell(row=row, column=col)
+                    cell.style = euro_style
+
             # Allinea il testo delle celle
             for row in ws.iter_rows(min_row=31, max_row=36, min_col=1, max_col=1):
                 for cell in row:
