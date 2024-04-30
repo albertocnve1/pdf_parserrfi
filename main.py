@@ -387,11 +387,15 @@ for root, dirs, files in os.walk(customers_folder):
                                 ws.column_dimensions[column_letter].width = 10
 
                             
-                            # Itera attraverso tutte le celle della riga 4
+                            # Itera attraverso tutte le celle della riga 4  
                             for col in range(2, ws.max_column + 1):
                                 cell = ws.cell(row=4, column=col)
                                 cell.font = Font(color="FF0000")  # Imposta il colore del testo a rosso
 
+
+                            # Ordina i fogli Excel in ordine alfabetico, tranne "Riepilogo" che viene messo per primo
+                            wb._sheets.sort(key=lambda x: x.title.lower() if x.title != "Riepilogo" else "")
+
                             # Salva il file Excel con il foglio "Riepilogo"
                             wb.save(excel_path)
-        
+
