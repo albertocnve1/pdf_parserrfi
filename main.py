@@ -229,9 +229,12 @@ def extract_specific_lines_to_excel(pdf_folder):
             cell_list = ['A31', 'A32', 'A33', 'B31', 'B32', 'B33', 'C33', 'A34', 'B34', 'C34', 'D34', 'E34', 'F34', 'G34', 'A35', 'B35', 'C35', 'D35', 'E35', 'F35', 'G35', 'A36', 'B36', 'A37', 'B37', 'C37', 'D37', 'E37', 'F37', 'G37', 'H37']
             for cell in cell_list:
                 ws[cell].border = border_style
+
+            ws.column_dimensions['O'].width = 10
             
             # Path del file Excel per il dipendente corrente
             excel_path = os.path.join(pdf_folder, f'{employee_name}.xlsx')
+
             
             # Salva il foglio di lavoro Excel per il dipendente corrente
             wb.save(excel_path)
