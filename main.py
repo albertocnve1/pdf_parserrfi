@@ -1,7 +1,7 @@
 import os
 import re
 import pdfplumber
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Border, Font, Alignment, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import NamedStyle
@@ -271,8 +271,127 @@ def prepare_and_extract(pdf_folder):
     # Dopo la preparazione dei PDF, esegui l'estrazione dei dati
     extract_specific_lines_to_excel(pdf_folder)
 
+
 # Chiedi all'utente di inserire il percorso della cartella dei dipendenti con le buste paga
 customers_folder = input("Inserisci il percorso della cartella dei dipendenti con le buste paga: ")
 
 # Chiama la funzione per preparare i file PDF e poi estrarre le righe specifiche dai PDF e scriverle in fogli Excel per ogni dipendente e anno
 prepare_and_extract(customers_folder)
+
+# Itera attraverso tutti i file Excel creati
+for root, dirs, files in os.walk(customers_folder):
+    for file in files:
+        if file.endswith('.xlsx') or file.endswith('.xls'):
+            # Apri il file Excel esistente
+            excel_path = os.path.join(root, file)
+            wb = load_workbook(excel_path)
+            # Itera attraverso tutti i file Excel creati
+            for root, dirs, files in os.walk(customers_folder):
+                for file in files:
+                    if file.endswith('.xlsx') or file.endswith('.xls'):
+                        # Apri il file Excel esistente
+                        excel_path = os.path.join(root, file)
+                        wb = load_workbook(excel_path)
+                        
+                        # Rimuovi il foglio "sheet" se presente
+                        if "Sheet" in wb.sheetnames:
+                            sheet = wb["Sheet"]
+                            wb.remove(sheet)
+                        
+                        # Crea un nuovo foglio di lavoro "Riepilogo" solo se non esiste già
+                        if "Riepilogo" not in wb.sheetnames:
+                            ws = wb.create_sheet(title="Riepilogo")
+                            # Salva il file Excel con il foglio "Riepilogo"
+                            wb.save(excel_path)
+                            # Sposta il foglio "Riepilogo" indietro di un numero di posizioni pari al numero di fogli precedenti
+                            wb.move_sheet(ws, offset=-len(wb.sheetnames) + 1)
+                            
+                            # Aggiungi il contenuto desiderato al foglio "Riepilogo"
+                            ws['A1'] = "Riepilogo"
+
+
+                            # Aggiungi i nomi degli altri fogli presenti nel documento excel, in ordine alfabetico
+                            sheet_names = sorted(sheet for sheet in wb.sheetnames if sheet != "Riepilogo")
+                            for i, sheet_name in enumerate(sheet_names):
+                                cell = get_column_letter(i+2) + '2'
+                                ws[cell] = sheet_name
+
+                            # Aggiungi la formula nella riga 3 per ogni cella della riga 2 che contiene del testo
+                            for col in range(2, ws.max_column + 1):
+                                cell = get_column_letter(col) + '3'
+                                if ws.cell(row=2, column=col).value:
+                                    ws[cell] = f"='{ws.cell(row=2, column=col).value}'!$B$36"
+                            
+                            # Applicazione dello stile in grassetto e rosso alla cella A3
+                            ws['A3'].font = Font(bold=True, color="FF0000")
+                            ws['A3'].value = "INCIDENZA"
+                            
+                            # Applicazione dello stile in grassetto e rosso alla cella A4
+                            ws['A4'].font = Font(bold=True, color="FF0000")
+                            ws['A4'].value = "Voci contrattuali accesìsorie dovute "
+        
+                            # Aggiungi la formula nella riga 4 per ogni cella della riga 2 che contiene del testo
+                            for col in range(2, ws.max_column + 1):
+                                cell = get_column_letter(col) + '4'
+                                if ws.cell(row=2, column=col).value:
+                                    ws[cell] = f"='{ws.cell(row=2, column=col).value}'!$H$37"
+                    
+                            # Modifica la larghezza della colonna A a 30 (185px)
+                            ws.column_dimensions['A'].width = 30
+
+                            # Aggiungi "TOTALE" in grassetto alla fine della riga 2
+                            last_column = get_column_letter(ws.max_column + 1)
+                            ws[last_column + '2'].font = Font(bold=True)
+                            ws[last_column + '2'].value = "TOTALE"
+
+                            # Calcola la somma delle celle dalla B3 fino all'ultima cella occupata della riga 3
+                            last_column = get_column_letter(ws.max_column)
+                            ws[last_column + '3'].value = f"=SUM(B3:{last_column}3)"
+
+
+                            # Modifica la larghezza della colonna corrispondente alla cella con il simbolo "%"
+                            ws.column_dimensions[last_column].width = 5
+                            
+                            # Calcola la somma delle celle dalla B4 fino all'ultima cella occupata della riga 4
+                            last_column = get_column_letter(ws.max_column)
+                            ws[last_column + '4'].value = f"=SUM(B4:{last_column}4)"
+
+                            # Formatta le celle di riga 4 come valuta in euro
+                            for col in range(2, ws.max_column + 1):
+                                cell = get_column_letter(col) + '4'
+                                ws[cell].style = euro_style
+    
+                            wb.save(excel_path)
+
+                            # Applicazione dello stile bordi visibili alle celle specificate
+                            # Definisci lo stile del bordo
+                            border_style = Border(left=Side(style='thin'),
+                                                  right=Side(style='thin'),
+                                                  top=Side(style='thin'),
+                                                  bottom=Side(style='thin'))
+
+                            # Bordi visibili per le celle con del testo
+                            for row in range(1, ws.max_row + 1):
+                                for col in range(1, ws.max_column + 1):
+                                    cell = ws.cell(row=row, column=col)
+                                    if cell.value:
+                                        cell.border = border_style
+
+                            # Aggiungi il simbolo "%" nella cella dopo l'ultima con del testo nella riga 3
+                            last_column = get_column_letter(ws.max_column + 1)
+                            ws[last_column + '3'].value = "%"
+
+                            # Modifica la larghezza delle colonne con del testo (eccetto la colonna A) a 10
+                            for col in range(2, ws.max_column + 1):
+                                column_letter = get_column_letter(col)
+                                ws.column_dimensions[column_letter].width = 10
+
+                            
+                            # Itera attraverso tutte le celle della riga 4
+                            for col in range(2, ws.max_column + 1):
+                                cell = ws.cell(row=4, column=col)
+                                cell.font = Font(color="FF0000")  # Imposta il colore del testo a rosso
+
+                            # Salva il file Excel con il foglio "Riepilogo"
+                            wb.save(excel_path)
+        
