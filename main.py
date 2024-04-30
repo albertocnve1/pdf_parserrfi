@@ -178,7 +178,7 @@ def extract_specific_lines_to_excel(pdf_folder):
             # Calcolo dei valori nelle celle specificate
             ws['G34'] = f"=O30/B31"
             ws['G35'] = f"=C33/26"
-            ws['B36'] = f"=(G34/100)*G35"
+            ws['B36'] = f"=(G34*100)/G35"
             ws['C36'] = f"%"
             ws['A37'] = "Voci contrattuali accessorie dovute durante le ferie (valore medio giornaliero x gg di ferie anno)"
             ws['H37'] = f"=B32*G34"
