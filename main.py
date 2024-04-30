@@ -61,7 +61,7 @@ def extract_specific_lines_to_excel(pdf_folder):
             ws = wb.create_sheet(title=year)
             
             # Elenco dei file PDF nelle cartelle del dipendente e dell'anno corrente
-            pdf_files = [f for f in os.listdir(year_folder) if f.endswith('.pdf')]
+            pdf_files = [f for f in os.listdir(year_folder) if f.endswith('.pdf') or f.endswith('.PDF')]
             
             # Dizionario per memorizzare i valori estratti per ogni codice e mese
             data = {}
@@ -140,8 +140,9 @@ def extract_specific_lines_to_excel(pdf_folder):
             for col in range(2, 14):  # Modifica il range fino alla colonna M
                 ws[get_column_letter(col) + str(last_row)].font = Font(bold=True)
                 
-                # Somma delle righe dalla riga 4 alla riga 30 e scrittura nella riga 30 per ogni colonna
-                ws[get_column_letter(col) + '30'] = f"=SUM({get_column_letter(col)}4:{get_column_letter(col)}{last_row-1})"
+                # Somma delle righe dalla riga 2 alla riga 29 e scrittura nella riga 30 per ogni colonna
+                for col in range(2, 14):  # Modifica il range fino alla colonna M
+                    ws[get_column_letter(col) + '30'] = f"=SUM({get_column_letter(col)}2:{get_column_letter(col)}29)"
             
             # Aggiungi le scritte richieste nelle celle specifiche
             ws['A31'] = "Presenze"
@@ -399,3 +400,5 @@ for root, dirs, files in os.walk(customers_folder):
                             # Salva il file Excel con il foglio "Riepilogo"
                             wb.save(excel_path)
 
+# Aggiungi un premi invio per chiudere il programma
+input("Premi invio per chiudere il programma")
