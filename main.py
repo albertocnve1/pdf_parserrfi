@@ -156,6 +156,10 @@ def extract_specific_lines_to_excel(pdf_folder):
             ws['A34'].font = Font(bold=True)
             ws['A35'].font = Font(bold=True)
             ws['A36'].font = Font(bold=True)
+
+            # Imposta il carattere della cella A36 a dimensione 8
+            ws['A36'].font = Font(size=8)
+            
             # Applicazione dello stile al testo in rosso delle celle specificate
             for cell in ['A36', 'A37', 'B36', 'C36', 'H37']:
                 ws[cell].font = Font(color="FF0000")
@@ -172,7 +176,9 @@ def extract_specific_lines_to_excel(pdf_folder):
         
             
             
-     
+            # Imposta la larghezza della colonna A a 11
+            ws.column_dimensions['A'].width = 11
+            
             # Modifica il nome del foglio di lavoro con il nome del dipendente e l'anno lavorativo
             ws.title = f'Anno {year}'
 
@@ -181,7 +187,7 @@ def extract_specific_lines_to_excel(pdf_folder):
             ws['G35'] = f"=C33/26"
             ws['B36'] = f"=(G34*100)/G35"
             ws['C36'] = f"%"
-            ws['A37'] = "Voci contrattuali accessorie dovute durante le ferie (valore medio giornaliero x gg di ferie anno)"
+            ws['A37'] = "Indennità dovute durante le ferie (valore medio giornaliero x gg di ferie anno)"
             ws['H37'] = f"=B32*G34"
             # Scrivi l'anno delle buste paga nella cella N1
             ws['N1'] = int(year)
