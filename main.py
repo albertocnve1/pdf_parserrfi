@@ -5,6 +5,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Border, Font, Alignment, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import NamedStyle
+from openpyxl.worksheet.page import PageMargins, PrintPageSetup
 from datetime import datetime
 import tempfile
 
@@ -405,6 +406,13 @@ for root, dirs, files in os.walk(customers_folder):
 
                             # Ordina i fogli Excel in ordine alfabetico, tranne "Riepilogo" che viene messo per primo
                             wb._sheets.sort(key=lambda x: x.title.lower() if x.title != "Riepilogo" else "")
+
+                            # Imposta l'orientamento della pagina a orizzontale
+                            ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
+
+                            # Imposta la larghezza e l'altezza della pagina a 1
+                            ws.page_setup.fitToWidth = 1
+                            ws.page_setup.fitToHeight = 1
 
                             # Salva il file Excel con il foglio "Riepilogo"
                             wb.save(excel_path)
