@@ -8,9 +8,11 @@ from openpyxl.styles import NamedStyle
 from openpyxl.worksheet.page import PageMargins, PrintPageSetup
 from datetime import datetime
 import tempfile
-
 # Creazione di uno stile per il formato delle celle in euro
 euro_style = NamedStyle(name="euro_style")
+euro_style.number_format = '€ #,##0.00'  # Formato valuta in euro
+
+summary = {}  # Define the missing variable
 euro_style.number_format = '€ #,##0.00'  # Formato valuta in euro
 
 def italian_month_to_number(month):
@@ -103,8 +105,9 @@ def extract_specific_lines_to_excel(pdf_folder):
                         # Separa la riga in codice, descrizione e valore
                         cells = line.split()
                         if len(cells) >= 3:
-                            # Sostituisci la virgola con un punto per consentire la conversione in float
-                            value = cells[-1].replace(',', '.')
+                            value = cells[-1].replace(',', '').replace('.', '')  # Remove commas and periods
+                            value = cells[-1].replace(',', '').replace('.', '')  # Remove commas and periods
+                            value = value[:-2] + '.' + value[-2:]  # Add a dot as the third last character
                             if month not in data:
                                 data[month] = {}
                             if cells[0] not in data[month]:
@@ -251,6 +254,13 @@ def extract_specific_lines_to_excel(pdf_folder):
 # Funzione per preparare i file PDF
 def prepare_and_extract(pdf_folder):
     # Attraversa ricorsivamente tutte le sottocartelle e trova i file PDF
+    for dirpath, _, filenames in os.walk(pdf_folder):
+        for filename in filenames:
+            if filename.endswith('.PDF') or filename.endswith('.pdf'):
+                file_path = os.path.join(dirpath, filename)
+                new_file_path = os.path.join(dirpath, filename.lower())
+                os.rename(file_path, new_file_path)
+                print(f"File rinominato: {file_path} -> {new_file_path}")
     for dirpath, _, filenames in os.walk(pdf_folder):
         for filename in filenames:
             if filename.endswith('.PDF') or filename.endswith('.pdf'):
