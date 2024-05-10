@@ -77,6 +77,7 @@ def extract_specific_lines_to_excel(pdf_folder):
                 # Estrai il mese e l'anno dal nome del file PDF
                 filename, file_extension = os.path.splitext(pdf_file)
                 month, year = filename.split(' ', 1)
+                month = month.capitalize()
                 
                 # Path completo del file PDF
                 pdf_path = os.path.join(year_folder, pdf_file)
@@ -105,7 +106,6 @@ def extract_specific_lines_to_excel(pdf_folder):
                         # Separa la riga in codice, descrizione e valore
                         cells = line.split()
                         if len(cells) >= 3:
-                            value = cells[-1].replace(',', '').replace('.', '')  # Remove commas and periods
                             value = cells[-1].replace(',', '').replace('.', '')  # Remove commas and periods
                             value = value[:-2] + '.' + value[-2:]  # Add a dot as the third last character
                             if month not in data:
@@ -245,7 +245,11 @@ def extract_specific_lines_to_excel(pdf_folder):
             # Path del file Excel per il dipendente corrente
             excel_path = os.path.join(pdf_folder, f'{employee_name}.xlsx')
 
+            # Ordina le colonne dalla B alla M in base al mese
+            #ws.move_range("B1:M1", rows=0, cols=1, translate=True)
+
             
+
             # Salva il foglio di lavoro Excel per il dipendente corrente
             wb.save(excel_path)
             
@@ -305,7 +309,7 @@ for root, dirs, files in os.walk(customers_folder):
         if file.endswith('.xlsx') or file.endswith('.xls'):
             # Apri il file Excel esistente
             excel_path = os.path.join(root, file)
-            wb = load_workbook(excel_path)
+           # wb = load_workbook(excel_path)
             # Itera attraverso tutti i file Excel creati
             for root, dirs, files in os.walk(customers_folder):
                 for file in files:
@@ -417,12 +421,6 @@ for root, dirs, files in os.walk(customers_folder):
                             # Ordina i fogli Excel in ordine alfabetico, tranne "Riepilogo" che viene messo per primo
                             wb._sheets.sort(key=lambda x: x.title.lower() if x.title != "Riepilogo" else "")
 
-                            # Imposta l'orientamento della pagina a orizzontale
-                            ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
-
-                            # Imposta la larghezza e l'altezza della pagina a 1
-                            ws.page_setup.fitToWidth = 1
-                            ws.page_setup.fitToHeight = 1
 
                             # Salva il file Excel con il foglio "Riepilogo"
                             wb.save(excel_path)
