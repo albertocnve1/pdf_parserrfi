@@ -180,14 +180,15 @@ def extract_specific_lines_to_excel(pdf_folder):
         
             
             
-            # Imposta la larghezza della colonna A a 11
-            ws.column_dimensions['A'].width = 11
+            # Imposta la larghezza delle colonne dalla A alla O a 12
+            for col in range(1, 16):
+                ws.column_dimensions[get_column_letter(col)].width = 12
             
             # Modifica il nome del foglio di lavoro con il nome del dipendente e l'anno lavorativo
             ws.title = f'Anno {year}'
 
             # Calcolo dei valori nelle celle specificate
-            ws['G34'] = f"=O30/B31"
+            ws['G34'] = f"=(O30/B31)-4.5"
             ws['G35'] = f"=C33/26"
             ws['B36'] = f"=(G34*100)/G35"
             ws['C36'] = f"%"
@@ -240,15 +241,10 @@ def extract_specific_lines_to_excel(pdf_folder):
             for cell in cell_list:
                 ws[cell].border = border_style
 
-            ws.column_dimensions['O'].width = 10
+            ws.column_dimensions['O'].width = 13
             
             # Path del file Excel per il dipendente corrente
             excel_path = os.path.join(pdf_folder, f'{employee_name}.xlsx')
-
-            # Ordina le colonne dalla B alla M in base al mese
-            #ws.move_range("B1:M1", rows=0, cols=1, translate=True)
-
-            
 
             # Salva il foglio di lavoro Excel per il dipendente corrente
             wb.save(excel_path)
@@ -369,17 +365,15 @@ for root, dirs, files in os.walk(customers_folder):
                             ws[last_column + '2'].font = Font(bold=True)
                             ws[last_column + '2'].value = "TOTALE"
 
-                            # Calcola la somma delle celle dalla B3 fino all'ultima cella occupata della riga 3
-                            last_column = get_column_letter(ws.max_column)
-                            ws[last_column + '3'].value = f"=SUM(B3:{last_column}3)"
 
 
                             # Modifica la larghezza della colonna corrispondente alla cella con il simbolo "%"
                             ws.column_dimensions[last_column].width = 5
                             
-                            # Calcola la somma delle celle dalla B4 fino all'ultima cella occupata della riga 4
-                            last_column = get_column_letter(ws.max_column)
-                            ws[last_column + '4'].value = f"=SUM(B4:{last_column}4)"
+                            # Calcola la somma delle celle dalla B4 fino alla penultima cella occupata della riga 4
+                            for col in range(2, ws.max_column):
+                                cell_range = f'B4:{get_column_letter(ws.max_column-1)}4'
+                                ws[last_column + '4'].value = f'=SUM({cell_range})'
 
                             # Formatta le celle di riga 4 come valuta in euro
                             for col in range(2, ws.max_column + 1):
@@ -402,14 +396,11 @@ for root, dirs, files in os.walk(customers_folder):
                                     if cell.value:
                                         cell.border = border_style
 
-                            # Aggiungi il simbolo "%" nella cella dopo l'ultima con del testo nella riga 3
-                            last_column = get_column_letter(ws.max_column + 1)
-                            ws[last_column + '3'].value = "%"
 
                             # Modifica la larghezza delle colonne con del testo (eccetto la colonna A) a 10
                             for col in range(2, ws.max_column + 1):
                                 column_letter = get_column_letter(col)
-                                ws.column_dimensions[column_letter].width = 10
+                                ws.column_dimensions[column_letter].width = 12
 
                             
                             # Itera attraverso tutte le celle della riga 4  
