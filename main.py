@@ -71,52 +71,56 @@ def extract_specific_lines_to_excel(pdf_folder):
             
             # Itera attraverso ogni file PDF per il dipendente e l'anno corrente
             for pdf_file in pdf_files:
-                # Crea un file di testo temporaneo
-                temp_text_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
+                try:
+                    # Crea un file di testo temporaneo
+                    temp_text_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
+                    
+                    # Estrai il mese e l'anno dal nome del file PDF
+                    filename, file_extension = os.path.splitext(pdf_file)
+                    month, year = filename.split(' ', 1)
+                    month = month.capitalize()
+                    
+                    # Path completo del file PDF
+                    pdf_path = os.path.join(year_folder, pdf_file)
+                    
+                    # Apre il file PDF con pdfplumber
+                    with pdfplumber.open(pdf_path) as pdf:
+                        # Itera attraverso tutte le pagine del PDF
+                        for page_num in range(len(pdf.pages)):
+                            page = pdf.pages[page_num]
+                            text = page.extract_text()
+                            
+                            # Itera attraverso tutte le righe del testo
+                            for line in text.split('\n'):
+                                # Utilizza espressioni regolari per trovare le righe con i codici desiderati
+                                match = re.match(r'^(0969|0970|0991|0992|0AD0|0AD1|0421|0457|0131|0576|0376|0377|0169|0170|0965|0966|0967|0987|0988|0790|0076)\s', line)
+                                if match:
+                                    # Scrivi la riga nel file di testo temporaneo
+                                    temp_text_file.write(line + '\n')
+                    
+                    # Chiudi il file di testo temporaneo
+                    temp_text_file.close()
+                    
+                    # Analizza il file di testo temporaneo e aggiorna i dati
+                    with open(temp_text_file.name, 'r') as temp_file:
+                        for line in temp_file:
+                            # Separa la riga in codice, descrizione e valore
+                            cells = line.split()
+                            if len(cells) >= 3:
+                                value = cells[-1].replace(',', '').replace('.', '')  # Remove commas and periods
+                                value = value[:-2] + '.' + value[-2:]  # Add a dot as the third last character
+                                if month not in data:
+                                    data[month] = {}
+                                if cells[0] not in data[month]:
+                                    data[month][cells[0]] = float(value)
+                                else:
+                                    data[month][cells[0]] += float(value)
+                    
+                    # Elimina il file di testo temporaneo
+                    os.remove(temp_text_file.name)
                 
-                # Estrai il mese e l'anno dal nome del file PDF
-                filename, file_extension = os.path.splitext(pdf_file)
-                month, year = filename.split(' ', 1)
-                month = month.capitalize()
-                
-                # Path completo del file PDF
-                pdf_path = os.path.join(year_folder, pdf_file)
-                
-                # Apre il file PDF con pdfplumber
-                with pdfplumber.open(pdf_path) as pdf:
-                    # Itera attraverso tutte le pagine del PDF
-                    for page_num in range(len(pdf.pages)):
-                        page = pdf.pages[page_num]
-                        text = page.extract_text()
-                        
-                        # Itera attraverso tutte le righe del testo
-                        for line in text.split('\n'):
-                            # Utilizza espressioni regolari per trovare le righe con i codici desiderati
-                            match = re.match(r'^(0969|0970|0991|0992|0AD0|0AD1|0421|0457|0131|0576|0376|0377|0169|0170|0965|0966|0967|0987|0988|0790|0076)\s', line)
-                            if match:
-                                # Scrivi la riga nel file di testo temporaneo
-                                temp_text_file.write(line + '\n')
-                
-                # Chiudi il file di testo temporaneo
-                temp_text_file.close()
-                
-                # Analizza il file di testo temporaneo e aggiorna i dati
-                with open(temp_text_file.name, 'r') as temp_file:
-                    for line in temp_file:
-                        # Separa la riga in codice, descrizione e valore
-                        cells = line.split()
-                        if len(cells) >= 3:
-                            value = cells[-1].replace(',', '').replace('.', '')  # Remove commas and periods
-                            value = value[:-2] + '.' + value[-2:]  # Add a dot as the third last character
-                            if month not in data:
-                                data[month] = {}
-                            if cells[0] not in data[month]:
-                                data[month][cells[0]] = float(value)
-                            else:
-                                data[month][cells[0]] += float(value)
-                
-                # Elimina il file di testo temporaneo
-                os.remove(temp_text_file.name)
+                except ValueError as e:
+                    print(f"{pdf_file} Ha il nome sbagliato. Ignorato. Correggere il nome e riavviare il programma.")
             
             # Ordina i mesi in ordine cronologico utilizzando il numero del mese
             months_sorted = sorted(data.keys(), key=lambda x: italian_month_to_number(x))
